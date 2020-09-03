@@ -29,19 +29,19 @@ const get_avail = cb => {
 	proc.stdout.on('data', chunk => stdout += chunk);
 	proc.stderr.on('data', chunk => stderr += chunk);
 	proc.on('error', err => {
-		let size = null;
-		cachedavail = size;
+		let avail = 0;
+		cachedavail = avail;
 		setTimeout(() => {
 			cachedavail = undefined;
 		}, 5000);
 		return cb(cachedavail);
 	});
 	proc.on('exit', code => {
-		let size = null;
+		let avail = 0;
 		if (code === 0) {
-			size = Number(stdout.split('\n')[1]);
+			avail = Number(stdout.split('\n')[1]);
 		}
-		cachedavail = size;
+		cachedavail = avail;
 		setTimeout(() => {
 			cachedavail = undefined;
 		}, 5000);
@@ -54,7 +54,7 @@ const testaccepts = (name, size, cb) => {
 		return cb(true);
 	}
 	size = Number(size);
-	if (size < min || size > max) {
+	if (size < min || size > max || size > cachedavail) {
 		return cb(false);
 	}
 	const env = {
