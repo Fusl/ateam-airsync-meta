@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+\#!/usr/bin/env node
 
 'use strict';
 
@@ -8,8 +8,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const checkscript = process.env.CHECKSCRIPT || undefined;
 const directory = process.env.DIRECTORY || '/';
-const min = process.env.SIZE_MIN || 0;
-const max = process.env.SIZE_MAX || Number.MAX_SAFE_INTEGER;
+const min = Number(process.env.SIZE_MIN) || 0;
+const max = Number(process.env.SIZE_MAX) || Number.MAX_SAFE_INTEGER;
 
 ['SIGHUP', 'SIGINT', 'SIGTERM'].forEach((signal) => {
 	process.on(signal, () => {
@@ -50,12 +50,15 @@ const get_avail = cb => {
 };
 
 const testaccepts = (name, size, cb) => {
-	if (!checkscript || isNaN(Number(size))) {
+	size = Number(size);
+	if (isNaN(size)) {
 		return cb(true);
 	}
-	size = Number(size);
 	if (size < min || size > max || size > cachedavail) {
 		return cb(false);
+	}
+	if (!checkscript) {
+		return cb(true);
 	}
 	const env = {
 		ITEM_SIZE: size
