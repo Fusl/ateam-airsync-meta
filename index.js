@@ -8,8 +8,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const checkscript = process.env.CHECKSCRIPT || undefined;
 const directory = process.env.DIRECTORY || '/';
-const min = process.env.SIZE_MIN || 0;
-const max = process.env.SIZE_MAX || Number.MAX_SAFE_INTEGER;
+const min = parseInt(process.env.SIZE_MIN) || 0;
+const max = parseInt(process.env.SIZE_MAX) || Number.MAX_SAFE_INTEGER;
 
 ['SIGHUP', 'SIGINT', 'SIGTERM'].forEach((signal) => {
 	process.on(signal, () => {
@@ -50,9 +50,8 @@ const get_avail = cb => {
 };
 
 const testaccepts = (name, size, cb) => {
-	if (!checkscript || isNaN(Number(size))) {
+    if(isNaN(Number(size))) {
 		return cb(true);
-	}
 	size = Number(size);
 	if (size < min || size > max || size > cachedavail) {
 		return cb(false);
@@ -62,6 +61,9 @@ const testaccepts = (name, size, cb) => {
 	};
 	if (name) {
 		env.ITEM_NAME = name;
+	}
+		if (!checkscript) {
+		return cb(true);
 	}
 	const proc = child_process.spawn(checkscript, [], {env:env});
 	proc.stdout.pipe(process.stdout, {end: false});
