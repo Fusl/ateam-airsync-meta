@@ -2,9 +2,9 @@
 
 'use strict';
 
-const express = require('express');
+const http = require('http');
+const url = require('url');
 const child_process = require('child_process');
-const app = express();
 const port = process.env.PORT || 3000;
 const checkscript = process.env.CHECKSCRIPT || undefined;
 const directory = process.env.DIRECTORY || '/';
@@ -78,17 +78,20 @@ const testaccepts = (name, size, cb) => {
 	});
 };
 
-app.get('/', (req, res) => {
+const server = http.createServer((req, res) => {
+	const urlobj = url.parse(req.url, true);
 	get_avail(avail => {
-		testaccepts(req.query.name, req.query.size, accepts => {
-			res.json({
+		testaccepts(urlobj.query.name, urlobj.query.size, accepts => {
+			res.end(JSON.stringify({
 				min: min,
 				max: max,
 				avail: avail || 0,
 				accepts: accepts
-			});
+			}));
 		});
 	});
 });
-
-app.listen(port);
+server.on('clientError', (err, socket) => {
+	socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+});
+server.listen(port);
